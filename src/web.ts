@@ -1,10 +1,18 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { GreatDayCameraLocationPlugin } from './definitions';
+import type { GreatDayCameraLocationPlugin, LocationCameraOptions, LocationRadiusCameraOptions } from './definitions';
 
 export class GreatDayCameraLocationWeb extends WebPlugin implements GreatDayCameraLocationPlugin {
-  async echo(options: { value: string }): Promise<{ value: string }> {
-    console.log('ECHO', options);
-    return options;
+  async getLocationCamera(_options?: LocationCameraOptions | undefined): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+  async getLocationCameraSwap(_options?: LocationCameraOptions | undefined): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+  async getLocationRadiusCamera(_options?: LocationRadiusCameraOptions | undefined): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+  async getLocationRadiusCameraSwap(_options?: LocationRadiusCameraOptions | undefined): Promise<any> {
+    throw new Error('Method not implemented.');
   }
 }
