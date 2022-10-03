@@ -92,8 +92,8 @@ getLocationRadiusCameraSwap(options?: LocationRadiusCameraOptions | undefined) =
 | Prop            | Type                |
 | --------------- | ------------------- |
 | **`photoName`** | <code>string</code> |
-| **`quality`**   | <code>number</code> |
-| **`maxSize`**   | <code>number</code> |
+| **`quality`**   | <code>string</code> |
+| **`maxSize`**   | <code>string</code> |
 
 
 #### LocationRadiusCameraOptions
@@ -101,8 +101,8 @@ getLocationRadiusCameraSwap(options?: LocationRadiusCameraOptions | undefined) =
 | Prop              | Type                 |
 | ----------------- | -------------------- |
 | **`photoName`**   | <code>string</code>  |
-| **`quality`**     | <code>number</code>  |
-| **`maxSize`**     | <code>number</code>  |
+| **`quality`**     | <code>string</code>  |
+| **`maxSize`**     | <code>string</code>  |
 | **`location`**    | <code>string</code>  |
 | **`label1`**      | <code>string</code>  |
 | **`label2`**      | <code>string</code>  |

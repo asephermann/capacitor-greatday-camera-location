@@ -7,14 +7,14 @@ export interface GreatDayCameraLocationPlugin {
 
 export interface LocationCameraOptions {
   photoName: string;
-  quality: number;
-  maxSize: number;
+  quality: string;
+  maxSize: string;
 }
 
 export interface LocationRadiusCameraOptions {
   photoName: string;
-  quality: number;
-  maxSize: number;
+  quality: string;
+  maxSize: string;
   location: string;
   label1: string;
   label2: string;

@@ -1,10 +1,13 @@
 package com.greatday.plugins.cameralocation
 
+import android.app.Activity
 import android.content.Intent
+import androidx.activity.result.ActivityResult
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
+import com.getcapacitor.annotation.ActivityCallback
 import com.getcapacitor.annotation.CapacitorPlugin
 import com.senjuid.camera.CameraPlugin
 import com.senjuid.camera.CameraPluginListener
@@ -16,11 +19,13 @@ import org.json.JSONException
 import org.json.JSONObject
 
 
-@CapacitorPlugin(name = "GreatDayCameraLocation")
+@CapacitorPlugin(name = "GreatDayCameraLocation", requestCodes = [CameraPlugin.REQUEST])
 class GreatDayCameraLocationPlugin : Plugin() {
 
     private var cameraPlugin: CameraPlugin? = null
+    private var cameraListener: CameraPluginListener? = null
     private var locationPlugin: LocationPlugin? = null
+    private var locationListener: LocationPluginListener? = null
 
     @PluginMethod
     fun getLocationCamera(call: PluginCall) {
@@ -103,7 +108,7 @@ class GreatDayCameraLocationPlugin : Plugin() {
         showAddress: Boolean?
     ) {
         val jsonLocation = JSONObject()
-        val cameraPluginListener: CameraPluginListener = object : CameraPluginListener {
+        cameraListener = object : CameraPluginListener {
             override fun onSuccess(photoPath: String, native: Boolean) {
                 try {
                     jsonLocation.put("path", photoPath)
@@ -122,7 +127,7 @@ class GreatDayCameraLocationPlugin : Plugin() {
                 call.resolve(ret)
             }
         }
-        val locationPluginListener: LocationPluginListener = object : LocationPluginListener {
+        locationListener = object : LocationPluginListener {
             override fun onLocationRetrieved(lon: Double, lat: Double, isMock: Boolean) {
                 try {
                     var address = ""
@@ -137,10 +142,10 @@ class GreatDayCameraLocationPlugin : Plugin() {
                     e.printStackTrace()
                 }
                 cameraPlugin = CameraPlugin(activity)
-                cameraPlugin?.setCameraPluginListener(cameraPluginListener)
+                cameraPlugin?.setCameraPluginListener(cameraListener)
                 startActivityForResult(
                     call,
-                    cameraPlugin?.getIntent(cameraOption), CameraPlugin.REQUEST
+                    cameraPlugin?.getIntent(cameraOption), "requestCamera"
                 )
             }
 
@@ -151,13 +156,64 @@ class GreatDayCameraLocationPlugin : Plugin() {
             }
         }
         locationPlugin = LocationPlugin(activity)
-        locationPlugin?.setLocationPluginListener(locationPluginListener)
+        locationPlugin?.setLocationPluginListener(locationListener)
         val options = LocationPluginOptions.Builder()
             .setData(location)
             .setMessage(message1, message2)
             .build()
         val intent: Intent = locationPlugin!!.getIntent(options)
-        startActivityForResult(call, intent, LocationPlugin.REQUEST)
+        startActivityForResult(call, intent, "requestLocationWithLanguage")
+    }
+
+    @ActivityCallback
+    private fun requestCamera(call: PluginCall?, result: ActivityResult) {
+        if (call == null) {
+            return
+        }
+        if (result.resultCode == Activity.RESULT_OK) {
+            val performNativeCamera = result.data?.getBooleanExtra("native", false)
+            cameraListener?.let {
+                val photoPath = result.data?.getStringExtra("photo")
+                if (performNativeCamera!!) {
+                    it.onSuccess("", true)
+                } else {
+                    if (photoPath != null) {
+                        it.onSuccess(photoPath, false)
+                    } else {
+                        it.onCancel()
+                    }
+                }
+            }
+        } else {
+            cameraListener?.onCancel()
+        }
+    }
+
+    @ActivityCallback
+    private fun requestLocationWithLanguage(call: PluginCall?, result: ActivityResult) {
+        if (call == null) {
+            return
+        }
+
+        val resultCode = result.resultCode
+        val data = result.data
+
+        if (resultCode == Activity.RESULT_OK) {
+            if (locationListener != null) {
+                if (data != null) {
+                    val lon: Double = data.getDoubleExtra("lon", 0.0)
+                    val lat: Double = data.getDoubleExtra("lat", 0.0)
+                    val isMock: Boolean = data.getBooleanExtra("isMock", false)
+                    locationListener?.onLocationRetrieved(lon, lat, isMock)
+                } else {
+                    locationListener?.onCanceled()
+                }
+            }
+        } else if (resultCode == Activity.RESULT_CANCELED) {
+            if (locationListener != null) {
+                locationListener?.onCanceled()
+            }
+        }
     }
 
     private fun parseQuality(qualityStr: String?): Int {
